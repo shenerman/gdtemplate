@@ -5,5 +5,7 @@ void ExampleClass::_bind_methods() {
 }
 
 void ExampleClass::print_type(const Variant &p_variant) const {
-	print_line(vformat("Type: %d", p_variant.get_type()));
+	UtilityFunctions::print(
+		"ExampleClass (", get_class(), "): Variant type: ",
+		Variant::get_type_name(p_variant.get_type()));
 }

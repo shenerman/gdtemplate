@@ -1,8 +1,12 @@
 #!/usr/bin/env python
+# pyright: reportUndefinedVariable=false
+
 import os
 import sys
 
-from methods import print_error
+from SCons.Builder import ListEmitter  # [MODIFIED] 新增：注册 emitter 时打包 emitter 链
+
+from methods import print_error, redirect_emitter  # [MODIFIED] 改为直接导入 emitter 本体
 
 
 libname = "EXTENSION-NAME"
@@ -22,6 +26,14 @@ customs = ["custom.py"]
 customs = [os.path.abspath(path) for path in customs]
 
 opts = Variables(customs, ARGUMENTS)
+
+# [MODIFIED] 与 Godot 引擎对齐：opts.Add 位于 Variables() 之后、Update() 之前
+opts.Add(BoolVariable(
+    "redirect_build_objects",
+    "Enable redirecting built objects to `bin/obj/` to declutter the repository.",
+    True,
+))
+
 opts.Update(localEnv)
 
 Help(opts.GenerateHelpText(localEnv))
@@ -38,11 +50,20 @@ Run the following command to download godot-cpp:
 env = SConscript("godot-cpp/SConstruct", {"env": env, "customs": customs})
 
 env.Append(CPPPATH=["src/"])
+
+# [MODIFIED] BEGIN: 参考 Godot 引擎 SConstruct 末尾的 emitter 注册方式，
+# 在 SharedObject 的 emitter 链前插入重定向 emitter，使编译产物进入 bin/obj/。
+# 只 patch SharedObject；SharedLibrary 的目标路径（bin/<platform>/）保持显式声明。
+for key in (emitters := env.SharedObject.builder.emitter):
+    emitters[key] = ListEmitter([redirect_emitter] + env.Flatten(emitters[key]))
+# [MODIFIED] END
+
 sources = Glob("src/*.cpp")
 
 if env["target"] in ["editor", "template_debug"]:
     try:
-        doc_data = env.GodotCPPDocData("src/gen/doc_data.gen.cpp", source=Glob("doc_classes/*.xml"))
+        # [MODIFIED] 生成文件是构建产物，从 src/gen/ 移到根目录 gen/，避免污染源码目录
+        doc_data = env.GodotCPPDocData("gen/doc_data.gen.cpp", source=Glob("doc_classes/*.xml"))
         sources.append(doc_data)
     except AttributeError:
         print("Not including class reference as we're targeting a pre-4.3 baseline.")
