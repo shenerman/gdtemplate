@@ -59,7 +59,7 @@ scons
 If the build command worked, you can test it with the [project](./project) project. Import it into Godot, open it, and launch the main scene. You should see it print the following line in the console:
 
 ```
-Type: 24
+ExampleClass (ExampleClass): Variant type: Object
 ```
 
 ### Configuring an IDE
