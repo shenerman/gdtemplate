@@ -1,5 +1,32 @@
-# godot-cpp template
-This repository serves as a quickstart template for GDExtension development with Godot 4.0+.
+# gdtemplate
+
+A fork of [godot-cpp-template](https://github.com/godotengine/godot-cpp-template) ,
+the official quickstart template for GDExtension development with Godot 4.0+.
+
+## Changes from upstream
+
+- **CI (`.github/workflows/ci.yml`)**: Build single precision only, matching the
+  upstream godot-cpp default — double precision matrix entries were removed.
+  Upstream godot-cpp 4.5-stable ships a single-precision `extension_api.json`,
+  which breaks `precision=double` builds (see
+  [godot-cpp#1955](https://github.com/godotengine/godot-cpp/issues/1955)) .
+  Also updated the web toolchain to the setup action's default `em-version`
+  instead of the outdated pinned 3.1.62.
+- **SConstruct**: generated code now lives in `gen/` (moved from `src/gen/`)
+  after the doc data migration; documentation emitter re-pointed accordingly.
+- **clang-tidy**: added configuration and a CI check for code style.
+- **`.gitignore`**: covered `project/bin/` build artifacts (the previous
+  `/bin/**` pattern was anchored to the repo root and missed them) and fixed
+  the `gen/` path. Note that `*.uid` files are intentionally *not* ignored —
+  Godot 4.4 requires them to be committed.
+
+## Using this template
+
+1. Follow the *Usage - Template* steps below to set up your extension.
+2. Then replace this README with your own project description.
+3. Replace [LICENSE](./LICENSE) with the license of your choice — the upstream
+   template itself is released into the public domain, but your extension
+   should carry its own license.
 
 ## Contents
 * Preconfigured source files for C++ development of the GDExtension ([src/](./src/))
